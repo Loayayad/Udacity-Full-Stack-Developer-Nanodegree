@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 
 # TODO: connect to a local postgresql database
-def setup(app):
+def setup_db(app):
     app.config.from_object('config')
     db.app = app
     db.init_app(app)
@@ -20,21 +20,21 @@ def setup(app):
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    genres = db.Column(ARRAY(String))
-    address = db.Column(db.String(120))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    website_link = db.Column(db.String(120))
-    facebook_link = db.Column(db.String(120))
+    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    genres = Column(ARRAY(String))
+    address = Column(String(120))
+    city = Column(String(120))
+    state = Column(String(120))
+    phone = Column(String(120))
+    website = Column(String(120))
+    facebook_link = Column(String(120))
     seeking_talent = Column(Boolean)
     seeking_description = Column(String(500))
-    image_link = db.Column(db.String(500))
+    image_link = Column(String(500))
     shows = db.relationship('Show', backref='Venue', lazy='dynamic')
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
     def __init__(self, name, genres, address, city, state, phone, website, facebook_link, image_link,
                  seeking_talent=False, seeking_description=""):
         self.name = name
@@ -95,6 +95,7 @@ class Venue(db.Model):
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
+    # TODO: implement any missing fields, as a database migration using Flask-Migrate
     id = Column(Integer, primary_key=True)
     name = Column(String)
     genres = Column(ARRAY(String))
@@ -107,8 +108,6 @@ class Artist(db.Model):
     seeking_description = Column(String(500))
     image_link = Column(String(500))
     shows = db.relationship('Show', backref='Artist', lazy='dynamic')
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
     def __init__(self, name, genres, city, state, phone, image_link, website, facebook_link,
                  seeking_venue=False, seeking_description=""):
@@ -150,9 +149,9 @@ class Artist(db.Model):
             'seeking_description': self.seeking_description,
             'image_link': self.image_link,
         }
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 
+# TODO Implement Show models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = 'Show'
 
@@ -195,3 +194,4 @@ class Show(db.Model):
             'venue_image_link': self.Venue.image_link,
             'start_time': self.start_time
         }
+
