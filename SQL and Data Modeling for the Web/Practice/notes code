@@ -1,0 +1,64 @@
+for xmlhttprequest
+
+var xhttp = new XMLHttpRequest();
+
+description = document.getElementById("description").value;
+
+xhttp.open("GET", "/todos/create?description=" + description);
+
+xhttp.send();
+
+xhttp.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) { 
+      // on successful response
+      console.log(xhttp.responseText);
+    }
+};
+
+
+fetch request
+
+fetch('/my/request', {
+  method: 'POST',
+  body: JSON.stringify({
+    'description': 'some description here'
+  }),
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+
+try catch error
+
+import sys
+
+ try:
+   todo = Todo(description=description)
+   db.session.add(todo)
+   db.session.commit()
+ except:
+   db.session.rollback()
+   error=True
+   print(sys.exc_info())
+ finally:
+   db.session.close()
+
+   
+
+   //many to many example
+
+   order_items = db.Table('order_items',
+    db.Column('order_id', db.Integer, db.ForeignKey('order.id'), primary_key=True),
+    db.Column('product_id', db.Integer, db.ForeignKey('product.id'), primary_key=True)
+)
+
+class Order(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  status = db.Column(db.String(), nullable=False)
+  products = db.relationship('Product', secondary=order_items,
+      backref=db.backref('orders', lazy=True))
+
+class Product(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(), nullable=False)
