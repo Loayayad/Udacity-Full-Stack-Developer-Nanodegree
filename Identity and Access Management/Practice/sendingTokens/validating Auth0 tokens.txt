@@ -1,0 +1,100 @@
+#you should login first to your Auth0 and take the token of the login
+
+# Install a pip package in the current Jupyter kernel
+import sys
+!{sys.executable} -m pip install python-jose
+
+import json
+from jose import jwt
+from urllib.request import urlopen
+
+# Configuration
+# UPDATE THIS TO REFLECT YOUR AUTH0 ACCOUNT
+AUTH0_DOMAIN = 'loay96.auth0.com'
+ALGORITHMS = ['RS256']
+API_AUDIENCE = 'Image'
+
+'''
+AuthError Exception
+A standardized way to communicate auth failure modes
+'''
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+
+# PASTE YOUR OWN TOKEN HERE
+# MAKE SURE THIS IS A VALID AUTH0 TOKEN FROM THE LOGIN FLOW
+token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjlPY3M4alhDYXdLejNSS1MxWHB3dyJ9.eyJpc3MiOiJodHRwczovL2xvYXk5Ni5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWViNzA3ZWM2YjY5YmMwYzEyMDdmZDczIiwiYXVkIjoiSW1hZ2UiLCJpYXQiOjE1ODkxOTYzMTMsImV4cCI6MTU4OTIwMzUxMywiYXpwIjoiUWU5SGFtRlk2dnB5N1cyZkVVMGVwZVNQUUJ5RmxINHAiLCJzY29wZSI6IiJ9.yFq3nYQ-FYFSX-Z4pq7Ji4X9oLiYtB-xfazgAV0v3IUVonmMhwKHyXaC_asqvEHw8RwQ8FzEUgM0hdog4wOA_lKgXEriE2WaBsiBkLqfhfQHYyNFsey50XoxfdOyJ4QWaCS2lqyKiO-UvQfbpXJbJQtN2NTAD0Z3273CE8VHxC_bEyOnaIQksO9ArCIygfLXMcJtyj-gFFbouijQVpgxnD9cC2jcMFUXYSJRrIhU98PW7JwS5MMa7P7n1diI5rtpK6lj20854PGlHeT5vvJJG292o8UA8oAQ2cVJ8fs9dMwIynnkHj9JkxlSGkfcPMQosFDo8xN5WQere3zuQVb7SQ"
+verify_decode_jwt(token)
+
+jwt.get_unverified_header(token)
+
+jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+jwks = json.loads(jsonurl.read())
+jwks
+
+
+## Auth Header
+def verify_decode_jwt(token):
+    # GET THE PUBLIC KEY FROM AUTH0
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+    jwks = json.loads(jsonurl.read())
+    
+    # GET THE DATA IN THE HEADER
+    unverified_header = jwt.get_unverified_header(token)
+    
+    # CHOOSE OUR KEY
+    rsa_key = {}
+    if 'kid' not in unverified_header:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
+
+    for key in jwks['keys']:
+        if key['kid'] == unverified_header['kid']:
+            rsa_key = {
+                'kty': key['kty'],
+                'kid': key['kid'],
+                'use': key['use'],
+                'n': key['n'],
+                'e': key['e']
+            }
+    
+    # Finally, verify!!!
+    if rsa_key:
+        try:
+            # USE THE KEY TO VALIDATE THE JWT
+            payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                audience=API_AUDIENCE,
+                issuer=f'https://{AUTH0_DOMAIN}/'
+            )
+
+            return payload
+
+        except jwt.ExpiredSignatureError:
+            raise AuthError({
+                'code': 'token_expired',
+                'description': 'Token expired.'
+            }, 401)
+
+        except jwt.JWTClaimsError:
+            raise AuthError({
+                'code': 'invalid_claims',
+                'description': 'Incorrect claims. Please, check the audience and issuer.'
+            }, 401)
+        except Exception:
+            raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to parse authentication token.'
+            }, 400)
+    raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to find the appropriate key.'
+            }, 400)
+
